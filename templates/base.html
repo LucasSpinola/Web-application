@@ -24,6 +24,7 @@
       
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
           <button type="button" class="btn btn-primary dropdown-item" data-toggle="modal" data-target="#exampleModal">Opções</button>
+          <a href="{% url 'seus_emprestimo' %}" class="btn btn-success dropdown-item">Seus emprestimos</a>
           <a href="{% url 'sair' %}" class="btn btn-danger dropdown-item">Sair</a>
           <div class="dropdown-divider"></div>
           <a class="dropdown-item">Carros: {{total_carros}}</a>
@@ -74,8 +75,10 @@
             </div>
 
             <div style="display: none;" id="emprestimo">
+              <button onclick="exibe_input_emprestado(1)" class="btn btn-secondary">Usuário novo</button>
+              <button onclick="exibe_input_emprestado(2)" class="btn btn-secondary">Usuário existente</button>
               <br>
-
+              <br>
               <form id="form_emprestimo" action="{% url 'cadastrar_emprestimos' %}" method="POST">{% csrf_token %}
                 
                 <select id="nome_emprestado" class="form-control" name="nome_emprestado">
@@ -85,6 +88,7 @@
                   {% endfor %}
 
                 </select>
+                <input style="display: none;" id="nome_emprestado_anonimo" type="text" placeholder="Nome de quem alugou..." name="nome_emprestado_anonimo" class="form-control">
                 <br>
                 <select class="form-control" name="carro_emprestado">
 
@@ -100,7 +104,7 @@
             </div>
 
             <div style="display: none;" id="devolucao">
-              <form action="{% url 'devolver_carros' %}" method="POST">{% csrf_token %}
+              <form action="{% url 'devolver_carro' %}" method="POST">{% csrf_token %}
                 <select class="form-control" name="id_carro_devolver">
 
                   {% for carro in carros_emprestados %}
@@ -119,7 +123,7 @@
     {% endif %}
     <script>
       function mostrar_form(v1){
-        carros = document.getElementById('carros')
+        carro = document.getElementById('carro')
         categoria = document.getElementById('categoria')
         emprestimo = document.getElementById('emprestimo')
         devolucao = document.getElementById('devolucao')
@@ -157,6 +161,18 @@
 
       }
 
+      function exibe_input_emprestado(v1){
+        
+        if(v1 == 1){
+          document.getElementById('nome_emprestado').style.display = 'none';
+          document.getElementById('nome_emprestado_anonimo').style.display = 'block';
+        }else{
+          document.getElementById('nome_emprestado').style.display = 'block';
+          document.getElementById('nome_emprestado_anonimo').style.display = 'none';
+
+        }
+
+      }
     </script>
   </body>
 </html>

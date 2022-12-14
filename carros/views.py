@@ -17,7 +17,7 @@ def home(request):
         forms.fields['usuario'].initial = request.session['usuario']
         forms.fields['categoria'].queryset = Categoria.objects.filter(usuario=usuario)
         forms_categoria = CategoriaCarro()
-        
+        img = Carro.objects.filter(usuario=usuario).filter(img__isnull=False)
         usuarios = Usuario.objects.all()
         carros_emprestar = Carro.objects.filter(usuario=usuario).filter(alugado=False)
         carros_emprestados = Carro.objects.filter(usuario=usuario).filter(alugado=True)
@@ -30,7 +30,8 @@ def home(request):
                                              'usuarios': usuarios,
                                              'carros_emprestar': carros_emprestar,
                                              'total_carros': total_carros,
-                                             'carros_emprestados': carros_emprestados})
+                                             'carros_emprestados': carros_emprestados,
+                                             'img': img})
     else:
         return redirect('/auth/login/?status=2')
     
@@ -93,22 +94,30 @@ def cadastrar_categoria(request):
 def cadastrar_emprestimos(request):
     if request.method == 'POST':
         nome_emprestado = request.POST.get('nome_emprestado')
-        carros_emprestados = request.POST.get('carros_emprestados')
+        nome_emprestado_anonimo = request.POST.get('nome_emprestado_anonimo')
+        carro_emprestado = request.POST.get('carro_emprestado')
+        if nome_emprestado_anonimo:
+            emprestimos = Emprestimo(nome_emprestado_anonimo = nome_emprestado_anonimo,
+                                    carro_id = carro_emprestado)
+        else:
+            emprestimos = Emprestimo(nome_emprestado_id = nome_emprestado,
+                                     carro_id = carro_emprestado)        
         
         emprestimos = Emprestimo(nome_emprestado_id = nome_emprestado ,
-                                 carro_id = carros_emprestados)
+                                 carro_id = carro_emprestado)
         emprestimos.save()
-        carro = Carro.objects.get(id = carros_emprestados)
-        carro.emprestado = True
+        
+        carro = Carro.objects.get(id = carro_emprestado)
+        carro.alugado = True
         carro.save()
-        return HttpResponse('Emprestimo cadastrado com sucesso!')
+        return redirect('/carros/home')
     
-def devolver_carros(request):
+def devolver_carro(request):
     id = request.POST.get('id_carro_devolver')
     carro_devolver = Carro.objects.get(id=id)
-    emprestimo_devolver = Emprestimo.objects.get(Q(carro= carro_devolver) & Q(data_devolucao=None))
-    emprestimo_devolver[0].data_devolucao = datetime.now()
-    emprestimo_devolver[0].save()
+    alugado_devolver = Emprestimo.objects.get(Q(carro= carro_devolver) & Q(data_devolucao=None))
+    alugado_devolver.data_devolucao = datetime.now()
+    alugado_devolver.save()
     carro_devolver.alugado = False
     carro_devolver.save()
     return redirect('/carros/home')
@@ -120,16 +129,41 @@ def editar_carro(request):
     ano = request.POST.get('ano')
     cor = request.POST.get('cor')
     preco = request.POST.get('preco')
-
-    carro = Carro.objects.get(id=carro_id)
-    if carro.usuario == request.session['usuario']:
-        carro.nome = nome_carro
-        carro.marca = marca
-        carro.ano = ano
-        carro.cor = cor
-        carro.preco = preco
-        carro.save()
+    categoria_id = request.POST.get('categoria_id')
+    categoria = Categoria.objects.get(id=categoria_id)
+    carros = Carro.objects.get(id=carro_id)
+    if carros.usuario.id == request.session['usuario']:
+        carros.nome = nome_carro
+        carros.marca = marca
+        carros.ano = ano
+        carros.cor = cor
+        carros.preco = preco
+        carros.categoria = categoria
+        carros.save()
     
-        return redirect(f'carros/ver_carro/{carro_id}')
+        return redirect(f'/carros/ver_carro/{carro_id}')
+    else:
+        return redirect('/auth/sair/')
+    
+
+def seus_emprestimo(request):
+    usuario = Usuario.objects.get(id=request.session['usuario'])
+    emprestimos = Emprestimo.objects.filter(nome_emprestado=usuario)
+    
+    
+    return render(request, 'seus_emprestimos.html', {'usuario_logado': request.session['usuario'],
+                                                     'emprestimos': emprestimos})
+    
+ 
+def processa_avaliacao(request):
+    id_alugado = request.POST.get('id_alugado')
+    opcoes = request.POST.get('opcoes')
+    id_carro = request.POST.get('id_carro')
+    
+    emprestimo=Emprestimo.objects.get(id = id_alugado)
+    if emprestimo.carro.usuario.id == request.session['usuario']:
+        emprestimo.avaliacao = opcoes
+        emprestimo.save()
+        return redirect(f'/carros/ver_carro/{id_carro}')
     else:
         return redirect('/auth/sair/')

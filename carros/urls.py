@@ -8,6 +8,8 @@ urlpatterns = [
     path('excluir_carro/<int:id>', views.excluir_carro, name = 'excluir_carro'),
     path('cadastrar_categoria', views.cadastrar_categoria, name = 'cadastrar_categoria'),
     path('cadastrar_emprestimos', views.cadastrar_emprestimos, name = 'cadastrar_emprestimos'),
-    path('devolver_carros', views.devolver_carros, name = 'devolver_carros'),
+    path('devolver_carro', views.devolver_carro, name = 'devolver_carro'),
     path('editar_carro', views.editar_carro, name ='editar_carro'),
+    path('seus_emprestimo', views.seus_emprestimo, name = 'seus_emprestimo'),
+    path('processa_avaliacao', views.processa_avaliacao, name = 'processa_avaliacao'),
 ]

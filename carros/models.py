@@ -13,6 +13,7 @@ class Categoria(models.Model):
 
 
 class Carro(models.Model):
+    img = models.ImageField(upload_to='capa_carro', blank=True, null=True)
     nome = models.CharField(max_length=100)
     marca = models.CharField(max_length=100)
     ano = models.IntegerField()
@@ -29,15 +30,17 @@ class Carro(models.Model):
 
 class Emprestimo(models.Model):
     choices = (
-        ('P', 'Péssimo'),
-        ('B', 'Bom'),
-        ('O', 'Ótimo'),
+        ('Péssimo', 'Péssimo'),
+        ('Bom', 'Bom'),
+        ('Ótimo', 'Ótimo'),
     )
     nome_emprestado = models.ForeignKey(Usuario, on_delete=models.DO_NOTHING, blank=True, null=True)
+    nome_emprestado_anonimo = models.CharField(max_length=30, blank=True, null=True)
     data_emprestado = models.DateTimeField(default=datetime.datetime.now())
     data_devolucao = models.DateTimeField(blank=True, null=True)
     carro = models.ForeignKey(Carro, on_delete=models.DO_NOTHING)
-    avalicao = models.CharField(max_length=1, choices=choices, null=True, blank=True)
+    avaliacao = models.CharField(max_length=7, choices=choices, null=True, blank=True)
     
     def __str__(self):
         return f'{self.nome_emprestado} | {self.carro}'
+    
